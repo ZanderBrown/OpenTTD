@@ -35,7 +35,7 @@ ScriptAsyncMode::ScriptAsyncMode(HSQUIRRELVM vm)
 	}
 
 	SQBool sqasync;
-	if (SQ_FAILED(sq_getbool(vm, 2, &sqasync))) {
+	if (sq_getbool(vm, 2, &sqasync).Failed()) {
 		throw sq_throwerror(vm, "Argument must be a boolean");
 	}
 

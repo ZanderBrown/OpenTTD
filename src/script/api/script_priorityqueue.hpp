@@ -71,11 +71,11 @@ public:
 	 */
 	void Clear();
 #else
-	SQInteger Insert(HSQUIRRELVM vm);
-	SQInteger Pop(HSQUIRRELVM vm);
-	SQInteger Peek(HSQUIRRELVM vm) const;
-	SQInteger Exists(HSQUIRRELVM vm) const;
-	SQInteger Clear(HSQUIRRELVM vm);
+	SQResult Insert(HSQUIRRELVM vm);
+	SQResult Pop(HSQUIRRELVM vm);
+	SQResult Peek(HSQUIRRELVM vm) const;
+	SQResult Exists(HSQUIRRELVM vm) const;
+	SQResult Clear(HSQUIRRELVM vm);
 #endif /* DOXYGEN_API */
 
 	/**

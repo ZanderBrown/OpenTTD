@@ -7,7 +7,6 @@
 #define MAX_NATIVE_CALLS 100
 #define MIN_STACK_OVERHEAD 10
 
-#define SQ_SUSPEND_FLAG -666
 //base lib
 void sq_base_register(HSQUIRRELVM v);
 
@@ -62,8 +61,8 @@ public:
 	bool StartCall(SQClosure *closure, SQInteger target, SQInteger nargs, SQInteger stackbase, bool tailcall);
 	bool CreateClassInstance(SQClass *theclass, SQObjectPtr &inst, SQObjectPtr &constructor);
 	//call a generic closure pure SQUIRREL or NATIVE
-	bool Call(SQObjectPtr &closure, SQInteger nparams, SQInteger stackbase, SQObjectPtr &outres,SQBool raiseerror,SQBool can_suspend);
-	SQRESULT Suspend();
+	bool Call(SQObjectPtr &closure, SQInteger nparams, SQInteger stackbase, SQObjectPtr &outres, SQBool raiseerror, SQBool can_suspend);
+	SQResult Suspend();
 
 	void CallDebugHook(SQInteger type,SQInteger forcedline=0);
 	void CallErrorHandler(SQObjectPtr &e);

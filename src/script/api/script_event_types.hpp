@@ -964,7 +964,7 @@ public:
 	/**
 	 * The GetObject() wrapper from Squirrel.
 	 */
-	SQInteger GetObject(HSQUIRRELVM vm) const;
+	SQResult GetObject(HSQUIRRELVM vm) const;
 #else
 	/**
 	 * Get the information that was sent to you back as Squirrel object.

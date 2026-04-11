@@ -35,7 +35,7 @@ ScriptText::ScriptText(HSQUIRRELVM vm)
 
 	/* First resolve the StringID. */
 	SQInteger sqstring;
-	if (SQ_FAILED(sq_getinteger(vm, 2, &sqstring))) {
+	if (sq_getinteger(vm, 2, &sqstring).Failed()) {
 		throw sq_throwerror(vm, "First argument must be a valid StringID");
 	}
 	this->string = StringIndexInTab(sqstring);
@@ -45,7 +45,7 @@ ScriptText::ScriptText(HSQUIRRELVM vm)
 		/* Push the parameter to the top of the stack. */
 		sq_push(vm, i + 3);
 
-		if (SQ_FAILED(this->_SetParam(i, vm))) {
+		if (this->_SetParam(i, vm).Failed()) {
 			this->~ScriptText();
 			throw sq_throwerror(vm, "Invalid parameter");
 		}
@@ -55,7 +55,7 @@ ScriptText::ScriptText(HSQUIRRELVM vm)
 	}
 }
 
-SQInteger ScriptText::_SetParam(int parameter, HSQUIRRELVM vm)
+SQResult ScriptText::_SetParam(int parameter, HSQUIRRELVM vm)
 {
 	if (static_cast<size_t>(parameter) >= std::size(this->param)) this->param.resize(parameter + 1);
 
@@ -87,12 +87,12 @@ SQInteger ScriptText::_SetParam(int parameter, HSQUIRRELVM vm)
 			sq_pushstring(vm, "GSText");
 			sq_get(vm, -2);
 			sq_pushobject(vm, instance);
-			if (sq_instanceof(vm) != SQTrue) return SQ_ERROR;
+			if (sq_instanceof(vm) != SQTrue) return SQResult::ERROR;
 			sq_pop(vm, 3);
 
 			/* Get the 'real' instance of this class */
 			sq_getinstanceup(vm, -1, &real_instance, nullptr);
-			if (real_instance == nullptr) return SQ_ERROR;
+			if (real_instance == nullptr) return SQResult::ERROR;
 
 			ScriptText *value = static_cast<ScriptText *>(real_instance);
 			this->param[parameter] = ScriptTextRef(value);
@@ -103,37 +103,36 @@ SQInteger ScriptText::_SetParam(int parameter, HSQUIRRELVM vm)
 			this->param[parameter] = {};
 			break;
 
-		default: return SQ_ERROR;
+		default: return SQResult::ERROR;
 	}
 
-	return 0;
+	return SQResult::OK;
 }
 
-SQInteger ScriptText::SetParam(HSQUIRRELVM vm)
+SQResult ScriptText::SetParam(HSQUIRRELVM vm)
 {
-	if (sq_gettype(vm, 2) != OT_INTEGER) return SQ_ERROR;
+	if (sq_gettype(vm, 2) != OT_INTEGER) return SQResult::ERROR;
 
 	SQInteger k;
 	sq_getinteger(vm, 2, &k);
 
-	if (k < 1) return SQ_ERROR;
+	if (k < 1) return SQResult::ERROR;
 	k--;
 
 	return this->_SetParam(k, vm);
 }
 
-SQInteger ScriptText::AddParam(HSQUIRRELVM vm)
+SQResult ScriptText::AddParam(HSQUIRRELVM vm)
 {
-	SQInteger res;
-	res = this->_SetParam(static_cast<int>(std::size(this->param)), vm);
-	if (res != 0) return res;
+	SQResult res = this->_SetParam(static_cast<int>(std::size(this->param)), vm);
+	if (!res.IsOk()) return res;
 
 	/* Push our own instance back on top of the stack */
 	sq_push(vm, 1);
-	return 1;
+	return SQResult::RETURN;
 }
 
-SQInteger ScriptText::_set(HSQUIRRELVM vm)
+SQResult ScriptText::_set(HSQUIRRELVM vm)
 {
 	int32_t k;
 
@@ -142,20 +141,20 @@ SQInteger ScriptText::_set(HSQUIRRELVM vm)
 		sq_getstring(vm, 2, view);
 
 		std::string str = StrMakeValid(view);
-		if (!str.starts_with("param_")) return SQ_ERROR;
+		if (!str.starts_with("param_")) return SQResult::ERROR;
 
 		auto key = ParseInteger<int32_t>(str.substr(6));
-		if (!key.has_value()) return SQ_ERROR;
+		if (!key.has_value()) return SQResult::ERROR;
 		k = *key;
 	} else if (sq_gettype(vm, 2) == OT_INTEGER) {
 		SQInteger key;
 		sq_getinteger(vm, 2, &key);
 		k = (int32_t)key;
 	} else {
-		return SQ_ERROR;
+		return SQResult::ERROR;
 	}
 
-	if (k < 1) return SQ_ERROR;
+	if (k < 1) return SQResult::ERROR;
 	k--;
 
 	return this->_SetParam(k, vm);
@@ -172,11 +171,11 @@ void ScriptText::SetPadParameterCount(HSQUIRRELVM vm)
 	SQInteger top = sq_gettop(vm);
 	sq_pushroottable(vm);
 	sq_pushstring(vm, "GSText");
-	if (!SQ_FAILED(sq_get(vm, -2))) {
+	if (!sq_get(vm, -2).Failed()) {
 		sq_pushstring(vm, "SCRIPT_TEXT_MAX_PARAMETERS");
-		if (!SQ_FAILED(sq_get(vm, -2))) {
+		if (!sq_get(vm, -2).Failed()) {
 			SQInteger value;
-			if (!SQ_FAILED(sq_getinteger(vm, -1, &value))) {
+			if (!sq_getinteger(vm, -1, &value).Failed()) {
 				ScriptText::pad_parameter_count = value;
 			}
 		}

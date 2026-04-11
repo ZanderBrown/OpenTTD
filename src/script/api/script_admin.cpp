@@ -56,7 +56,7 @@ bool ScriptAdminMakeJSON(nlohmann::json &json, HSQUIRRELVM vm, SQInteger index, 
 			json = nlohmann::json::array();
 
 			sq_pushnull(vm);
-			while (SQ_SUCCEEDED(sq_next(vm, index - 1))) {
+			while (sq_next(vm, index - 1).Succeeded()) {
 				nlohmann::json tmp;
 
 				bool res = ScriptAdminMakeJSON(tmp, vm, -1, depth + 1);
@@ -76,7 +76,7 @@ bool ScriptAdminMakeJSON(nlohmann::json &json, HSQUIRRELVM vm, SQInteger index, 
 			json = nlohmann::json::object();
 
 			sq_pushnull(vm);
-			while (SQ_SUCCEEDED(sq_next(vm, index - 1))) {
+			while (sq_next(vm, index - 1).Succeeded()) {
 				sq_tostring(vm, -2);
 				std::string_view view;
 				sq_getstring(vm, -1, view);
@@ -116,7 +116,7 @@ bool ScriptAdminMakeJSON(nlohmann::json &json, HSQUIRRELVM vm, SQInteger index, 
 	}
 }
 
-/* static */ SQInteger ScriptAdmin::Send(HSQUIRRELVM vm)
+/* static */ SQResult ScriptAdmin::Send(HSQUIRRELVM vm)
 {
 	if (sq_gettop(vm) - 1 != 1) return sq_throwerror(vm, "wrong number of parameters");
 
@@ -127,11 +127,11 @@ bool ScriptAdminMakeJSON(nlohmann::json &json, HSQUIRRELVM vm, SQInteger index, 
 	nlohmann::json json;
 	if (!ScriptAdminMakeJSON(json, vm, -1)) {
 		sq_pushinteger(vm, 0);
-		return 1;
+		return SQResult::RETURN;
 	}
 
 	NetworkAdminGameScript(json.dump());
 
 	sq_pushinteger(vm, 1);
-	return 1;
+	return SQResult::RETURN;
 }

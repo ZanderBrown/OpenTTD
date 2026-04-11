@@ -149,12 +149,12 @@ public:
 	/**
 	 * Used when trying to instantiate ScriptObject from squirrel.
 	 */
-	static SQInteger Constructor(HSQUIRRELVM);
+	static SQResult Constructor(HSQUIRRELVM);
 
 	/**
 	 * Used for 'clone' from squirrel.
 	 */
-	static SQInteger _cloned(HSQUIRRELVM);
+	static SQResult _cloned(HSQUIRRELVM);
 
 protected:
 	template <Commands TCmd, typename T> struct ScriptDoCommandHelper;

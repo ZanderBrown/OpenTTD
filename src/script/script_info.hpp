@@ -102,7 +102,7 @@ public:
 	 * @param info The metadata about the script.
 	 * @return \c 0 upon success, or anything other on failure.
 	 */
-	static SQInteger Constructor(HSQUIRRELVM vm, ScriptInfo &info);
+	static SQResult Constructor(HSQUIRRELVM vm, ScriptInfo &info);
 
 	/**
 	 * Get the scanner which has found this ScriptInfo.
@@ -134,14 +134,14 @@ public:
 	 * @param vm The virtual machine to work on.
 	 * @return \c 0 upon success, or anything other on failure.
 	 */
-	SQInteger AddSetting(HSQUIRRELVM vm);
+	SQResult AddSetting(HSQUIRRELVM vm);
 
 	/**
 	 * Add labels for a setting.
 	 * @param vm The virtual machine to work on.
 	 * @return \c 0 upon success, or anything other on failure.
 	 */
-	SQInteger AddLabels(HSQUIRRELVM vm);
+	SQResult AddLabels(HSQUIRRELVM vm);
 
 	/**
 	 * Get the default value for a setting.

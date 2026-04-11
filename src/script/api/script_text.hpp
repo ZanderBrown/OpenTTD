@@ -94,17 +94,17 @@ public:
 	/**
 	 * Used for .param_N and [] set from Squirrel.
 	 */
-	SQInteger _set(HSQUIRRELVM vm);
+	SQResult _set(HSQUIRRELVM vm);
 
 	/**
 	 * Set the parameter.
 	 */
-	SQInteger SetParam(HSQUIRRELVM vm);
+	SQResult SetParam(HSQUIRRELVM vm);
 
 	/**
 	 * Add an parameter
 	 */
-	SQInteger AddParam(HSQUIRRELVM vm);
+	SQResult AddParam(HSQUIRRELVM vm);
 #else
 	/**
 	 * Set the parameter to a value.
@@ -178,7 +178,7 @@ private:
 	/**
 	 * Set a parameter, where the value is the first item on the stack.
 	 */
-	SQInteger _SetParam(int k, HSQUIRRELVM vm);
+	SQResult _SetParam(int k, HSQUIRRELVM vm);
 };
 
 #endif /* SCRIPT_TEXT_HPP */

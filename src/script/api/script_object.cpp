@@ -352,19 +352,19 @@ ScriptObject::DisableDoCommandScope::DisableDoCommandScope()
 	}
 }
 
-/* static */ SQInteger ScriptObject::Constructor(HSQUIRRELVM)
+/* static */ SQResult ScriptObject::Constructor(HSQUIRRELVM)
 {
 	throw Script_FatalError("This class is not instantiatable");
 }
 
-/* static */ SQInteger ScriptObject::_cloned(HSQUIRRELVM vm)
+/* static */ SQResult ScriptObject::_cloned(HSQUIRRELVM vm)
 {
 	ScriptObject *original = static_cast<ScriptObject *>(Squirrel::GetRealInstance(vm, 2, "Object"));
 	if (ScriptObject *clone = original->CloneObject(); clone != nullptr) {
 		clone->AddRef();
 		sq_setinstanceup(vm, 1, clone);
 		sq_setreleasehook(vm, 1, SQConvert::DefSQDestructorCallback<ScriptObject>);
-		return 0;
+		return SQResult::OK;
 	}
 
 	throw Script_FatalError("This instance is not cloneable");

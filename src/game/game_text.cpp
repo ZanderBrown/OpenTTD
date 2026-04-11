@@ -363,7 +363,7 @@ void RegisterGameTranslation(Squirrel &engine)
 	HSQUIRRELVM vm = engine.GetVM();
 	sq_pushroottable(vm);
 	sq_pushstring(vm, "GSText");
-	if (SQ_FAILED(sq_get(vm, -2))) return;
+	if (sq_get(vm, -2).Failed()) return;
 
 	int idx = 0;
 	for (const auto &p : _current_gamestrings_data->string_names) {

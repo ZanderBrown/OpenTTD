@@ -31,14 +31,14 @@ public:
 	 * @param vm The virtual machine to push the instance to.
 	 * @return The number of stack places occupied.
 	 */
-	static SQInteger Constructor(HSQUIRRELVM vm);
+	static SQResult Constructor(HSQUIRRELVM vm);
 
 	/**
 	 * Create a dummy-AI.
 	 * @param vm The virtual machine to push the instance to.
 	 * @return The number of stack places occupied.
 	 */
-	static SQInteger DummyConstructor(HSQUIRRELVM vm);
+	static SQResult DummyConstructor(HSQUIRRELVM vm);
 
 	/**
 	 * Check if we can start this AI.
@@ -81,7 +81,7 @@ public:
 	 * @param vm The virtual machine to push the instance to.
 	 * @return The number of stack places occupied.
 	 */
-	static SQInteger Constructor(HSQUIRRELVM vm);
+	static SQResult Constructor(HSQUIRRELVM vm);
 
 	/**
 	 * Get the category this library is in.

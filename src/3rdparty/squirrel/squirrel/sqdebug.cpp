@@ -16,7 +16,7 @@
 
 #include "../../../safeguards.h"
 
-SQRESULT sq_getfunctioninfo(HSQUIRRELVM v,SQInteger level,SQFunctionInfo *fi)
+SQResult sq_getfunctioninfo(HSQUIRRELVM v, SQInteger level, SQFunctionInfo *fi)
 {
 	SQInteger cssize = v->_callsstacksize;
 	if (cssize > level) {
@@ -27,13 +27,13 @@ SQRESULT sq_getfunctioninfo(HSQUIRRELVM v,SQInteger level,SQFunctionInfo *fi)
 			fi->funcid = proto;
 			fi->name = type(proto->_name) == OT_STRING?_stringval(proto->_name):"unknown";
 			fi->source = type(proto->_name) == OT_STRING?_stringval(proto->_sourcename):"unknown";
-			return SQ_OK;
+			return SQResult::OK;
 		}
 	}
 	return sq_throwerror(v,"the object is not a closure");
 }
 
-SQRESULT sq_stackinfos(HSQUIRRELVM v, SQInteger level, SQStackInfos *si)
+SQResult sq_stackinfos(HSQUIRRELVM v, SQInteger level, SQStackInfos *si)
 {
 	SQInteger cssize = v->_callsstacksize;
 	if (cssize > level) {
@@ -58,9 +58,9 @@ SQRESULT sq_stackinfos(HSQUIRRELVM v, SQInteger level, SQStackInfos *si)
 			break;
 		default: break; //shutup compiler
 		}
-		return SQ_OK;
+		return SQResult::OK;
 	}
-	return SQ_ERROR;
+	return SQResult::ERROR;
 }
 
 void SQVM::Raise_Error(const std::string &msg)

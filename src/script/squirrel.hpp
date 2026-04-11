@@ -41,7 +41,7 @@ private:
 	 * @param vm The virtual machine.
 	 * @return Always \c 0. Required return type due to this being passed to another function.
 	 */
-	static SQInteger _RunError(HSQUIRRELVM vm);
+	static SQResult _RunError(HSQUIRRELVM vm);
 
 	/**
 	 * Get the API name.
@@ -111,7 +111,7 @@ public:
 	 * @param printerror Whether to print errors, or completely ignore them.
 	 * @return \c 0 when the file could be loaded, otherwise another number denoting an error.
 	 */
-	SQRESULT LoadFile(HSQUIRRELVM vm, const std::string &filename, SQBool printerror);
+	SQResult LoadFile(HSQUIRRELVM vm, const std::string &filename, SQBool printerror);
 
 	/**
 	 * Adds a function to the stack. Depending on the current state this means

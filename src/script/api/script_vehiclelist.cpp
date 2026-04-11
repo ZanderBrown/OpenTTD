@@ -43,7 +43,7 @@ ScriptVehicleList_Station::ScriptVehicleList_Station(HSQUIRRELVM vm)
 	if (nparam < 1 || nparam > 2) throw sq_throwerror(vm, "wrong number of parameters");
 
 	SQInteger sqstationid;
-	if (SQ_FAILED(sq_getinteger(vm, 2, &sqstationid))) {
+	if (sq_getinteger(vm, 2, &sqstationid).Failed()) {
 		throw sq_throwerror(vm, "parameter 1 must be an integer");
 	}
 	StationID station_id = static_cast<StationID>(sqstationid);
@@ -55,7 +55,7 @@ ScriptVehicleList_Station::ScriptVehicleList_Station(HSQUIRRELVM vm)
 
 	if (nparam == 2) {
 		SQInteger sqtype;
-		if (SQ_FAILED(sq_getinteger(vm, 3, &sqtype))) {
+		if (sq_getinteger(vm, 3, &sqtype).Failed()) {
 			throw sq_throwerror(vm, "parameter 2 must be an integer");
 		}
 		if (sqtype < ScriptVehicle::VT_RAIL || sqtype > ScriptVehicle::VT_AIR) return;

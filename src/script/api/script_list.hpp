@@ -111,8 +111,8 @@ protected:
 					}
 
 					/* Call the function. Squirrel pops all parameters and pushes the return value. */
-					if (SQ_FAILED(sq_call(vm, nparam + 1, SQTrue, SQFalse))) {
-						throw static_cast<SQInteger>(SQ_ERROR);
+					if (sq_call(vm, nparam + 1, SQTrue, SQFalse).Failed()) {
+						throw SQResult::ERROR;
 					}
 
 					SQBool add = SQFalse;
@@ -462,23 +462,23 @@ public:
 	/**
 	 * Used for 'foreach()' and [] get from Squirrel.
 	 */
-	SQInteger _get(HSQUIRRELVM vm) const;
+	SQResult _get(HSQUIRRELVM vm) const;
 
 	/**
 	 * Used for [] set from Squirrel.
 	 */
-	SQInteger _set(HSQUIRRELVM vm);
+	SQResult _set(HSQUIRRELVM vm);
 
 	/**
 	 * Used for 'foreach()' from Squirrel.
 	 */
-	SQInteger _nexti(HSQUIRRELVM vm);
+	SQResult _nexti(HSQUIRRELVM vm);
 
 	/**
 	 * The Valuate() wrapper from Squirrel.
 	 * @suspendable
 	 */
-	SQInteger Valuate(HSQUIRRELVM vm);
+	SQResult Valuate(HSQUIRRELVM vm);
 #else
 	/**
 	 * Give all items a value defined by the valuator you give.

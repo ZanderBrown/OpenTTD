@@ -350,20 +350,20 @@ bool ScriptList::LoadObject(HSQUIRRELVM vm)
 {
 	if (sq_gettype(vm, -1) != OT_ARRAY) return false;
 	sq_pushnull(vm);
-	if (SQ_FAILED(sq_next(vm, -2))) return false;
+	if (sq_next(vm, -2).Failed()) return false;
 	if (sq_gettype(vm, -1) != OT_INTEGER) return false;
 	SQInteger type;
 	sq_getinteger(vm, -1, &type);
 	sq_pop(vm, 2);
-	if (SQ_FAILED(sq_next(vm, -2))) return false;
+	if (sq_next(vm, -2).Failed()) return false;
 	if (sq_gettype(vm, -1) != OT_BOOL) return false;
 	SQBool order;
 	sq_getbool(vm, -1, &order);
 	sq_pop(vm, 2);
-	if (SQ_FAILED(sq_next(vm, -2))) return false;
+	if (sq_next(vm, -2).Failed()) return false;
 	if (sq_gettype(vm, -1) != OT_TABLE) return false;
 	sq_pushnull(vm);
-	while (SQ_SUCCEEDED(sq_next(vm, -2))) {
+	while (sq_next(vm, -2).Succeeded()) {
 		if (sq_gettype(vm, -2) != OT_INTEGER && sq_gettype(vm, -1) != OT_INTEGER) return false;
 		SQInteger key, value;
 		sq_getinteger(vm, -2, &key);
@@ -372,7 +372,7 @@ bool ScriptList::LoadObject(HSQUIRRELVM vm)
 		sq_pop(vm, 2);
 	}
 	sq_pop(vm, 3);
-	if (SQ_SUCCEEDED(sq_next(vm, -2))) return false;
+	if (sq_next(vm, -2).Succeeded()) return false;
 	sq_pop(vm, 1);
 	this->Sort(static_cast<SorterType>(type), order == SQTrue);
 	return true;
@@ -682,23 +682,23 @@ bool ScriptList::KeepList(ScriptList *list)
 	return this->RemoveItems([&](const SQInteger &k, const SQInteger &) { return !list->HasItem(k); });
 }
 
-SQInteger ScriptList::_get(HSQUIRRELVM vm) const
+SQResult ScriptList::_get(HSQUIRRELVM vm) const
 {
-	if (sq_gettype(vm, 2) != OT_INTEGER) return SQ_ERROR;
+	if (sq_gettype(vm, 2) != OT_INTEGER) return SQResult::ERROR;
 
 	SQInteger idx;
 	sq_getinteger(vm, 2, &idx);
 
 	auto item_iter = this->items.find(idx);
-	if (item_iter == this->items.end()) return SQ_ERROR;
+	if (item_iter == this->items.end()) return SQResult::ERROR;
 
 	sq_pushinteger(vm, item_iter->second);
-	return 1;
+	return SQResult::RETURN;
 }
 
-SQInteger ScriptList::_set(HSQUIRRELVM vm)
+SQResult ScriptList::_set(HSQUIRRELVM vm)
 {
-	if (sq_gettype(vm, 2) != OT_INTEGER) return SQ_ERROR;
+	if (sq_gettype(vm, 2) != OT_INTEGER) return SQResult::ERROR;
 
 	SQInteger idx;
 	sq_getinteger(vm, 2, &idx);
@@ -708,7 +708,7 @@ SQInteger ScriptList::_set(HSQUIRRELVM vm)
 	switch (sq_gettype(vm, 3)) {
 		case OT_NULL:
 			this->RemoveItem(idx);
-			return 0;
+			return SQResult::OK;
 
 		case OT_BOOL: {
 			SQBool v;
@@ -727,22 +727,22 @@ SQInteger ScriptList::_set(HSQUIRRELVM vm)
 
 	if (!this->HasItem(idx)) {
 		this->AddItem(idx, val);
-		return 0;
+		return SQResult::OK;
 	}
 
 	this->SetValue(idx, val);
-	return 0;
+	return SQResult::OK;
 }
 
-SQInteger ScriptList::_nexti(HSQUIRRELVM vm)
+SQResult ScriptList::_nexti(HSQUIRRELVM vm)
 {
 	if (sq_gettype(vm, 2) == OT_NULL) {
 		if (this->IsEmpty()) {
 			sq_pushnull(vm);
-			return 1;
+			return SQResult::RETURN;
 		}
 		sq_pushinteger(vm, this->Begin());
-		return 1;
+		return SQResult::RETURN;
 	}
 
 	SQInteger idx;
@@ -751,14 +751,14 @@ SQInteger ScriptList::_nexti(HSQUIRRELVM vm)
 	SQInteger val = this->Next();
 	if (this->IsEnd()) {
 		sq_pushnull(vm);
-		return 1;
+		return SQResult::RETURN;
 	}
 
 	sq_pushinteger(vm, val);
-	return 1;
+	return SQResult::RETURN;
 }
 
-SQInteger ScriptList::Valuate(HSQUIRRELVM vm)
+SQResult ScriptList::Valuate(HSQUIRRELVM vm)
 {
 	this->modifications++;
 
@@ -798,7 +798,7 @@ SQInteger ScriptList::Valuate(HSQUIRRELVM vm)
 			/* Pop the valuator function. */
 			sq_poptop(vm);
 			sq_pushbool(vm, SQTrue);
-			return 1;
+			return SQResult::RETURN;
 		}
 
 		/* Check for changing of items. */
@@ -813,8 +813,8 @@ SQInteger ScriptList::Valuate(HSQUIRRELVM vm)
 		}
 
 		/* Call the function. Squirrel pops all parameters and pushes the return value. */
-		if (SQ_FAILED(sq_call(vm, nparam + 1, SQTrue, SQFalse))) {
-			return SQ_ERROR;
+		if (sq_call(vm, nparam + 1, SQTrue, SQFalse).Failed()) {
+			return SQResult::ERROR;
 		}
 
 		/* Retrieve the return value */
@@ -861,5 +861,5 @@ SQInteger ScriptList::Valuate(HSQUIRRELVM vm)
 
 	this->resume_item.reset();
 	sq_pushbool(vm, SQFalse);
-	return 1;
+	return SQResult::RETURN;
 }

@@ -26,7 +26,7 @@ static bool CheckAPIVersion(const std::string &api_version)
 	return std::ranges::find(GameInfo::ApiVersions, api_version) != std::end(GameInfo::ApiVersions);
 }
 
-template <> SQInteger PushClassName<GameInfo, ScriptType::GS>(HSQUIRRELVM vm) { sq_pushstring(vm, "GSInfo"); return 1; }
+template <> SQResult PushClassName<GameInfo, ScriptType::GS>(HSQUIRRELVM vm) { sq_pushstring(vm, "GSInfo"); return SQResult::RETURN; }
 
 /* static */ void GameInfo::RegisterAPI(Squirrel &engine)
 {
@@ -46,41 +46,41 @@ template <> SQInteger PushClassName<GameInfo, ScriptType::GS>(HSQUIRRELVM vm) { 
 	engine.AddMethod("RegisterGS", &GameInfo::Constructor, "tx");
 }
 
-/* static */ SQInteger GameInfo::Constructor(HSQUIRRELVM vm)
+/* static */ SQResult GameInfo::Constructor(HSQUIRRELVM vm)
 {
 	/* Get the GameInfo */
 	SQUserPointer instance = nullptr;
-	if (SQ_FAILED(sq_getinstanceup(vm, 2, &instance, nullptr)) || instance == nullptr) return sq_throwerror(vm, "Pass an instance of a child class of GameInfo to RegisterGame");
+	if (sq_getinstanceup(vm, 2, &instance, nullptr).Failed() || instance == nullptr) return sq_throwerror(vm, "Pass an instance of a child class of GameInfo to RegisterGame");
 	GameInfo *info = (GameInfo *)instance;
 
-	SQInteger res = ScriptInfo::Constructor(vm, *info);
-	if (res != 0) return res;
+	SQResult res = ScriptInfo::Constructor(vm, *info);
+	if (!res.IsOk()) return res;
 
 	if (info->engine->MethodExists(info->SQ_instance, "MinVersionToLoad")) {
-		if (!info->engine->CallIntegerMethod(info->SQ_instance, "MinVersionToLoad", &info->min_loadable_version, MAX_GET_OPS)) return SQ_ERROR;
-		if (info->min_loadable_version < 0) return SQ_ERROR;
+		if (!info->engine->CallIntegerMethod(info->SQ_instance, "MinVersionToLoad", &info->min_loadable_version, MAX_GET_OPS)) return SQResult::ERROR;
+		if (info->min_loadable_version < 0) return SQResult::ERROR;
 	} else {
 		info->min_loadable_version = info->GetVersion();
 	}
 	/* When there is an IsSelectable function, call it. */
 	if (info->engine->MethodExists(info->SQ_instance, "IsDeveloperOnly")) {
-		if (!info->engine->CallBoolMethod(info->SQ_instance, "IsDeveloperOnly", &info->is_developer_only, MAX_GET_OPS)) return SQ_ERROR;
+		if (!info->engine->CallBoolMethod(info->SQ_instance, "IsDeveloperOnly", &info->is_developer_only, MAX_GET_OPS)) return SQResult::ERROR;
 	} else {
 		info->is_developer_only = false;
 	}
 	/* Try to get the API version the AI is written for. */
-	if (!info->CheckMethod("GetAPIVersion")) return SQ_ERROR;
-	if (!info->engine->CallStringMethod(info->SQ_instance, "GetAPIVersion", &info->api_version, MAX_GET_OPS)) return SQ_ERROR;
+	if (!info->CheckMethod("GetAPIVersion")) return SQResult::ERROR;
+	if (!info->engine->CallStringMethod(info->SQ_instance, "GetAPIVersion", &info->api_version, MAX_GET_OPS)) return SQResult::ERROR;
 	if (!CheckAPIVersion(info->api_version)) {
 		sq_throwerror(vm, fmt::format("Loading info.nut from ({}.{}): GetAPIVersion returned invalid version", info->GetName(), info->GetVersion()));
-		return SQ_ERROR;
+		return SQResult::ERROR;
 	}
 
 	/* Remove the link to the real instance, else it might get deleted by RegisterGame() */
 	sq_setinstanceup(vm, 2, nullptr);
 	/* Register the Game to the base system */
 	info->GetScanner()->RegisterScript(std::unique_ptr<GameInfo>{info});
-	return 0;
+	return SQResult::OK;
 }
 
 GameInfo::GameInfo() :
@@ -104,24 +104,24 @@ bool GameInfo::CanLoadFromVersion(int version) const
 	engine.AddMethod("RegisterLibrary", &GameLibrary::Constructor, "tx");
 }
 
-/* static */ SQInteger GameLibrary::Constructor(HSQUIRRELVM vm)
+/* static */ SQResult GameLibrary::Constructor(HSQUIRRELVM vm)
 {
 	/* Create a new library */
 	auto library = std::make_unique<GameLibrary>();
 
-	SQInteger res = ScriptInfo::Constructor(vm, *library);
-	if (res != 0) {
+	SQResult res = ScriptInfo::Constructor(vm, *library);
+	if (!res.IsOk()) {
 		return res;
 	}
 
 	/* Cache the category */
 	if (!library->CheckMethod("GetCategory") || !library->engine->CallStringMethod(library->SQ_instance, "GetCategory", &library->category, MAX_GET_OPS)) {
-		return SQ_ERROR;
+		return SQResult::ERROR;
 	}
 
 	/* Register the Library to the base system */
 	ScriptScanner *scanner = library->GetScanner();
 	scanner->RegisterScript(std::move(library));
 
-	return 0;
+	return SQResult::OK;
 }

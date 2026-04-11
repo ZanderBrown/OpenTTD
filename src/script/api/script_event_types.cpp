@@ -183,7 +183,7 @@ static bool ScriptEventAdminPortReadValue(HSQUIRRELVM vm, nlohmann::json &json)
 	return true;
 }
 
-SQInteger ScriptEventAdminPort::GetObject(HSQUIRRELVM vm) const
+SQResult ScriptEventAdminPort::GetObject(HSQUIRRELVM vm) const
 {
 	auto json = nlohmann::json::parse(this->json, nullptr, false);
 
@@ -191,7 +191,7 @@ SQInteger ScriptEventAdminPort::GetObject(HSQUIRRELVM vm) const
 		ScriptLog::Error("The root element in the JSON data from AdminPort has to be an object.");
 
 		sq_pushnull(vm);
-		return 1;
+		return SQResult::RETURN;
 	}
 
 	auto top = sq_gettop(vm);
@@ -202,8 +202,8 @@ SQInteger ScriptEventAdminPort::GetObject(HSQUIRRELVM vm) const
 		ScriptLog::Error("Received invalid JSON data from AdminPort.");
 
 		sq_pushnull(vm);
-		return 1;
+		return SQResult::RETURN;
 	}
 
-	return 1;
+	return SQResult::RETURN;
 }

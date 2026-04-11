@@ -29,32 +29,32 @@ public:
 	/**
 	 * Get the lowest of two integers.
 	 * @param vm The virtual machine to get the integers from, and write the result to.
-	 * @return The number of stack spaces to pop.
+	 * @return SQResult::OK upon success.
 	 */
-	static SQInteger min(HSQUIRRELVM vm);
+	static SQResult min(HSQUIRRELVM vm);
 
 	/**
 	 * Get the highest of two integers.
 	 * @param vm The virtual machine to get the integers from, and write the result to.
-	 * @return The number of stack spaces to pop.
+	 * @return SQResult::OK upon success.
 	 */
-	static SQInteger max(HSQUIRRELVM vm);
+	static SQResult max(HSQUIRRELVM vm);
 
 	/**
 	 * Load another file on runtime.
 	 * @note This is always loaded on the root-level, no matter where you call this.
 	 * @note The filename is always relative from the script it is called from. Absolute calls are NOT allowed!
 	 * @param vm The virtual machine to load the file into.
-	 * @return \c 0 upon success, or any other integer upon failure.
+	 * @return SQResult::OK upon success, or any other integer upon failure.
 	 */
-	static SQInteger require(HSQUIRRELVM vm);
+	static SQResult require(HSQUIRRELVM vm);
 
 	/**
 	 * Enable/disable stack trace showing for handled exceptions.
 	 * @param vm The virtual machine to change the notifications for.
-	 * @return \c 0 upon success, or any other integer upon failure.
+	 * @return SQResult::OK upon success, or any other integer upon failure.
 	 */
-	static SQInteger notifyallexceptions(HSQUIRRELVM vm);
+	static SQResult notifyallexceptions(HSQUIRRELVM vm);
 };
 
 /**

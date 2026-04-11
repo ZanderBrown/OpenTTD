@@ -64,10 +64,10 @@ static std::optional<std::string> TestScriptAdminMakeJSON(std::string_view squir
 	sq_pop(vm, 1);
 
 	/* Compile the snippet. */
-	REQUIRE(sq_compilebuffer(vm, buffer, "test", SQTrue) == SQ_OK);
+	REQUIRE(sq_compilebuffer(vm, buffer, "test", SQTrue).IsOk());
 	/* Execute the snippet, capturing the return value. */
 	sq_pushroottable(vm);
-	REQUIRE(sq_call(vm, 1, SQTrue, SQTrue) == SQ_OK);
+	REQUIRE(sq_call(vm, 1, SQTrue, SQTrue).IsOk());
 	/* Ensure the snippet pushed a table on the stack. */
 	REQUIRE(sq_gettype(vm, -1) == OT_TABLE);
 

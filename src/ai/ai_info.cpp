@@ -28,7 +28,7 @@ static bool CheckAPIVersion(const std::string &api_version)
 	return std::ranges::find(AIInfo::ApiVersions, api_version) != std::end(AIInfo::ApiVersions);
 }
 
-template <> SQInteger PushClassName<AIInfo, ScriptType::AI>(HSQUIRRELVM vm) { sq_pushstring(vm, "AIInfo"); return 1; }
+template <> SQResult PushClassName<AIInfo, ScriptType::AI>(HSQUIRRELVM vm) { sq_pushstring(vm, "AIInfo"); return SQResult::RETURN; }
 
 /* static */ void AIInfo::RegisterAPI(Squirrel &engine)
 {
@@ -55,34 +55,34 @@ template <> SQInteger PushClassName<AIInfo, ScriptType::AI>(HSQUIRRELVM vm) { sq
 	engine.AddMethod("RegisterDummyAI", &AIInfo::DummyConstructor, "tx");
 }
 
-/* static */ SQInteger AIInfo::Constructor(HSQUIRRELVM vm)
+/* static */ SQResult AIInfo::Constructor(HSQUIRRELVM vm)
 {
 	/* Get the AIInfo */
 	SQUserPointer instance = nullptr;
-	if (SQ_FAILED(sq_getinstanceup(vm, 2, &instance, nullptr)) || instance == nullptr) return sq_throwerror(vm, "Pass an instance of a child class of AIInfo to RegisterAI");
+	if (sq_getinstanceup(vm, 2, &instance, nullptr).Failed() || instance == nullptr) return sq_throwerror(vm, "Pass an instance of a child class of AIInfo to RegisterAI");
 	AIInfo *info = (AIInfo *)instance;
 
-	SQInteger res = ScriptInfo::Constructor(vm, *info);
-	if (res != 0) return res;
+	SQResult res = ScriptInfo::Constructor(vm, *info);
+	if (!res.IsOk()) return res;
 
 	if (info->engine->MethodExists(info->SQ_instance, "MinVersionToLoad")) {
-		if (!info->engine->CallIntegerMethod(info->SQ_instance, "MinVersionToLoad", &info->min_loadable_version, MAX_GET_OPS)) return SQ_ERROR;
-		if (info->min_loadable_version < 0) return SQ_ERROR;
+		if (!info->engine->CallIntegerMethod(info->SQ_instance, "MinVersionToLoad", &info->min_loadable_version, MAX_GET_OPS)) return SQResult::ERROR;
+		if (info->min_loadable_version < 0) return SQResult::ERROR;
 	} else {
 		info->min_loadable_version = info->GetVersion();
 	}
 	/* When there is an UseAsRandomAI function, call it. */
 	if (info->engine->MethodExists(info->SQ_instance, "UseAsRandomAI")) {
-		if (!info->engine->CallBoolMethod(info->SQ_instance, "UseAsRandomAI", &info->use_as_random, MAX_GET_OPS)) return SQ_ERROR;
+		if (!info->engine->CallBoolMethod(info->SQ_instance, "UseAsRandomAI", &info->use_as_random, MAX_GET_OPS)) return SQResult::ERROR;
 	} else {
 		info->use_as_random = true;
 	}
 	/* Try to get the API version the AI is written for. */
 	if (info->engine->MethodExists(info->SQ_instance, "GetAPIVersion")) {
-		if (!info->engine->CallStringMethod(info->SQ_instance, "GetAPIVersion", &info->api_version, MAX_GET_OPS)) return SQ_ERROR;
+		if (!info->engine->CallStringMethod(info->SQ_instance, "GetAPIVersion", &info->api_version, MAX_GET_OPS)) return SQResult::ERROR;
 		if (!CheckAPIVersion(info->api_version)) {
 			sq_throwerror(vm, fmt::format("Loading info.nut from ({}.{}): GetAPIVersion returned invalid version", info->GetName(), info->GetVersion()));
-			return SQ_ERROR;
+			return SQResult::ERROR;
 		}
 	} else {
 		info->api_version = "0.7";
@@ -92,10 +92,10 @@ template <> SQInteger PushClassName<AIInfo, ScriptType::AI>(HSQUIRRELVM vm) { sq
 	sq_setinstanceup(vm, 2, nullptr);
 	/* Register the AI to the base system */
 	info->GetScanner()->RegisterScript(std::unique_ptr<AIInfo>{info});
-	return 0;
+	return SQResult::OK;
 }
 
-/* static */ SQInteger AIInfo::DummyConstructor(HSQUIRRELVM vm)
+/* static */ SQResult AIInfo::DummyConstructor(HSQUIRRELVM vm)
 {
 	/* Get the AIInfo */
 	SQUserPointer instance;
@@ -103,14 +103,14 @@ template <> SQInteger PushClassName<AIInfo, ScriptType::AI>(HSQUIRRELVM vm) { sq
 	AIInfo *info = (AIInfo *)instance;
 	info->api_version = *std::rbegin(AIInfo::ApiVersions);
 
-	SQInteger res = ScriptInfo::Constructor(vm, *info);
-	if (res != 0) return res;
+	SQResult res = ScriptInfo::Constructor(vm, *info);
+	if (!res.IsOk()) return res;
 
 	/* Remove the link to the real instance, else it might get deleted by RegisterAI() */
 	sq_setinstanceup(vm, 2, nullptr);
 	/* Register the AI to the base system */
 	static_cast<AIScannerInfo *>(info->GetScanner())->SetDummyAI(std::unique_ptr<AIInfo>(info));
-	return 0;
+	return SQResult::OK;
 }
 
 AIInfo::AIInfo() :
@@ -134,24 +134,24 @@ bool AIInfo::CanLoadFromVersion(int version) const
 	engine.AddMethod("RegisterLibrary", &AILibrary::Constructor, "tx");
 }
 
-/* static */ SQInteger AILibrary::Constructor(HSQUIRRELVM vm)
+/* static */ SQResult AILibrary::Constructor(HSQUIRRELVM vm)
 {
 	/* Create a new library */
 	auto library = std::make_unique<AILibrary>();
 
-	SQInteger res = ScriptInfo::Constructor(vm, *library);
-	if (res != 0) {
+	SQResult res = ScriptInfo::Constructor(vm, *library);
+	if (!res.IsOk()) {
 		return res;
 	}
 
 	/* Cache the category */
 	if (!library->CheckMethod("GetCategory") || !library->engine->CallStringMethod(library->SQ_instance, "GetCategory", &library->category, MAX_GET_OPS)) {
-		return SQ_ERROR;
+		return SQResult::ERROR;
 	}
 
 	/* Register the Library to the base system */
 	ScriptScanner *scanner = library->GetScanner();
 	scanner->RegisterScript(std::move(library));
 
-	return 0;
+	return SQResult::OK;
 }

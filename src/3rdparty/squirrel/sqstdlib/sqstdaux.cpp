@@ -20,8 +20,7 @@ void sqstd_printcallstack(HSQUIRRELVM v)
 		SQInteger seq=0;
 		pf(v,"\n");
 		pf(v,"CALLSTACK WITH LOCALS\n");
-		while(SQ_SUCCEEDED(sq_stackinfos(v,level,&si)))
-		{
+		while (sq_stackinfos(v, level, &si).Succeeded()) {
 			std::string_view fn="unknown";
 			std::string_view src="unknown";
 			if(!si.funcname.empty())fn=si.funcname;
@@ -106,14 +105,14 @@ void sqstd_printcallstack(HSQUIRRELVM v)
 	}
 }
 
-static SQInteger _sqstd_aux_printerror(HSQUIRRELVM v)
+static SQResult _sqstd_aux_printerror(HSQUIRRELVM v)
 {
 	SQPRINTFUNCTION pf = sq_getprintfunc(v);
 	if(pf) {
 		std::string_view error;
 		if(sq_gettop(v)>=1) {
 			pf(v,"\n");
-			if(SQ_SUCCEEDED(sq_getstring(v,2,error))) {
+			if (sq_getstring(v,2,error).Succeeded()) {
 				pf(v,fmt::format("AN ERROR HAS OCCURRED [{}]\n",error));
 			}
 			else{
@@ -122,7 +121,7 @@ static SQInteger _sqstd_aux_printerror(HSQUIRRELVM v)
 			sqstd_printcallstack(v);
 		}
 	}
-	return 0;
+	return SQResult::OK;
 }
 
 void _sqstd_compiler_error(HSQUIRRELVM v,std::string_view sErr,std::string_view sSource,SQInteger line,SQInteger column)

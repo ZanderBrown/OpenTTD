@@ -230,19 +230,19 @@ void Squirrel::RunError(HSQUIRRELVM vm, std::string_view error)
 	sq_setprintfunc(vm, pf);
 }
 
-SQInteger Squirrel::_RunError(HSQUIRRELVM vm)
+SQResult Squirrel::_RunError(HSQUIRRELVM vm)
 {
 	std::string_view view;
 
 	if (sq_gettop(vm) >= 1) {
-		if (SQ_SUCCEEDED(sq_getstring(vm, -1, view))) {
+		if (sq_getstring(vm, -1, view).Succeeded()) {
 			Squirrel::RunError(vm, view);
-			return 0;
+			return SQResult::OK;
 		}
 	}
 
 	Squirrel::RunError(vm, "unknown error");
-	return 0;
+	return SQResult::OK;
 }
 
 void Squirrel::PrintFunc(HSQUIRRELVM vm, std::string_view s)
@@ -283,9 +283,9 @@ void Squirrel::AddMethod(std::string_view method_name, SQFUNCTION proc, std::str
 			"return {0};\n", method_name);
 
 		sq_pushstring(this->vm, method_name);
-		if (SQ_FAILED(sq_compilebuffer(this->vm, squirrel_script, method_name, SQTrue))) NOT_REACHED();
+		if (sq_compilebuffer(this->vm, squirrel_script, method_name, SQTrue).Failed()) NOT_REACHED();
 		sq_pushroottable(this->vm);
-		if (SQ_FAILED(sq_call(this->vm, 1, SQTrue, SQTrue))) NOT_REACHED();
+		if (sq_call(this->vm, 1, SQTrue, SQTrue).Failed()) NOT_REACHED();
 		sq_remove(this->vm, -2);
 		sq_newslot(this->vm, -3, SQFalse);
 	}
@@ -325,7 +325,7 @@ void Squirrel::AddClassBegin(std::string_view class_name, std::string_view paren
 	sq_pushroottable(this->vm);
 	sq_pushstring(this->vm, class_name);
 	sq_pushstring(this->vm, parent_class);
-	if (SQ_FAILED(sq_get(this->vm, -3))) {
+	if (sq_get(this->vm, -3).Failed()) {
 		Debug(misc, 0, "[squirrel] Failed to initialize class '{}' based on parent class '{}'", class_name, parent_class);
 		Debug(misc, 0, "[squirrel] Make sure that '{}' exists before trying to define '{}'", parent_class, class_name);
 		return;
@@ -351,7 +351,7 @@ bool Squirrel::MethodExists(HSQOBJECT instance, std::string_view method_name)
 	sq_pushobject(this->vm, instance);
 	/* Find the function-name inside the script */
 	sq_pushstring(this->vm, method_name);
-	if (SQ_FAILED(sq_get(this->vm, -2))) {
+	if (sq_get(this->vm, -2).Failed()) {
 		sq_settop(this->vm, top);
 		return false;
 	}
@@ -410,14 +410,14 @@ bool Squirrel::CallMethod(HSQOBJECT instance, std::string_view method_name, HSQO
 	sq_pushobject(this->vm, instance);
 	/* Find the function-name inside the script */
 	sq_pushstring(this->vm, method_name);
-	if (SQ_FAILED(sq_get(this->vm, -2))) {
+	if (sq_get(this->vm, -2).Failed()) {
 		Debug(misc, 0, "[squirrel] Could not find '{}' in the class", method_name);
 		sq_settop(this->vm, top);
 		return false;
 	}
 	/* Call the method */
 	sq_pushobject(this->vm, instance);
-	if (SQ_FAILED(sq_call(this->vm, 1, ret == nullptr ? SQFalse : SQTrue, SQTrue, suspend))) return false;
+	if (sq_call(this->vm, 1, ret == nullptr ? SQFalse : SQTrue, SQTrue, suspend).Failed()) return false;
 	if (ret != nullptr) sq_getstackobj(vm, -1, ret);
 	/* Reset the top, but don't do so for the script main function, as we need
 	 *  a correct stack when resuming. */
@@ -474,14 +474,14 @@ bool Squirrel::CallBoolMethod(HSQOBJECT instance, std::string_view method_name, 
 		sq_pushstring(vm, class_name);
 	}
 
-	if (SQ_FAILED(sq_get(vm, -2))) {
+	if (sq_get(vm, -2).Failed()) {
 		Debug(misc, 0, "[squirrel] Failed to find class by the name '{}{}'", prepend_API_name ? engine->GetAPIName() : "", class_name);
 		sq_settop(vm, oldtop);
 		return false;
 	}
 
 	/* Create the instance */
-	if (SQ_FAILED(sq_createinstance(vm, -1))) {
+	if (sq_createinstance(vm, -1).Failed()) {
 		Debug(misc, 0, "[squirrel] Failed to create instance for class '{}{}'", prepend_API_name ? engine->GetAPIName() : "", class_name);
 		sq_settop(vm, oldtop);
 		return false;
@@ -523,7 +523,7 @@ bool Squirrel::CreateClassInstance(const std::string &class_name, void *real_ins
 	if (sq_instanceof(vm) == SQTrue) {
 		sq_pop(vm, 3);
 		SQUserPointer ptr = nullptr;
-		if (SQ_SUCCEEDED(sq_getinstanceup(vm, index, &ptr, nullptr))) return ptr;
+		if (sq_getinstanceup(vm, index, &ptr, nullptr).Succeeded()) return ptr;
 	}
 	throw sq_throwerror(vm, fmt::format("parameter {} has an invalid type ; expected: '{}'", index - 1, class_name));
 }
@@ -640,7 +640,7 @@ static SQInteger _io_file_read(SQUserPointer file, SQUserPointer buf, SQInteger 
 	return ret;
 }
 
-SQRESULT Squirrel::LoadFile(HSQUIRRELVM vm, const std::string &filename, SQBool printerror)
+SQResult Squirrel::LoadFile(HSQUIRRELVM vm, const std::string &filename, SQBool printerror)
 {
 	ScriptAllocatorScope alloc_scope(this);
 
@@ -672,8 +672,8 @@ SQRESULT Squirrel::LoadFile(HSQUIRRELVM vm, const std::string &filename, SQBool 
 			}
 
 			SQFile f(std::move(*file), size);
-			if (SQ_SUCCEEDED(sq_readclosure(vm, _io_file_read, &f))) {
-				return SQ_OK;
+			if (sq_readclosure(vm, _io_file_read, &f).Succeeded()) {
+				return SQResult::OK;
 			}
 			return sq_throwerror(vm, "Couldn't read bytecode");
 		}
@@ -701,10 +701,10 @@ SQRESULT Squirrel::LoadFile(HSQUIRRELVM vm, const std::string &filename, SQBool 
 	}
 
 	SQFile f(std::move(*file), size);
-	if (SQ_SUCCEEDED(sq_compile(vm, func, &f, filename.c_str(), printerror))) {
-		return SQ_OK;
+	if (sq_compile(vm, func, &f, filename.c_str(), printerror).Succeeded()) {
+		return SQResult::OK;
 	}
-	return SQ_ERROR;
+	return SQResult::ERROR;
 }
 
 bool Squirrel::LoadScript(HSQUIRRELVM vm, const std::string &script, bool in_root)
@@ -716,9 +716,9 @@ bool Squirrel::LoadScript(HSQUIRRELVM vm, const std::string &script, bool in_roo
 
 	SQInteger ops_left = vm->_ops_till_suspend;
 	/* Load and run the script */
-	if (SQ_SUCCEEDED(LoadFile(vm, script, SQTrue))) {
+	if (LoadFile(vm, script, SQTrue).Succeeded()) {
 		sq_push(vm, -2);
-		if (SQ_SUCCEEDED(sq_call(vm, 1, SQFalse, SQTrue, 100000))) {
+		if (sq_call(vm, 1, SQFalse, SQTrue, 100000).Succeeded()) {
 			sq_pop(vm, 1);
 			/* After compiling the file we want to reset the amount of opcodes. */
 			vm->_ops_till_suspend = ops_left;

@@ -31,7 +31,7 @@ public:
 	 * @param vm The virtual machine to push the instance to.
 	 * @return The number of stack places occupied.
 	 */
-	static SQInteger Constructor(HSQUIRRELVM vm);
+	static SQResult Constructor(HSQUIRRELVM vm);
 
 	/**
 	 * Check if we can start this Game.
@@ -70,7 +70,7 @@ public:
 	 * @param vm The virtual machine to push the instance to.
 	 * @return The number of stack places occupied.
 	 */
-	static SQInteger Constructor(HSQUIRRELVM vm);
+	static SQResult Constructor(HSQUIRRELVM vm);
 
 	/**
 	 * Get the category this library is in.

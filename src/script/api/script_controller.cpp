@@ -147,11 +147,11 @@ ScriptController::ScriptController(::CompanyID company) :
 	/* Find the real class inside the fake class (like 'sets.Vector') */
 	sq_pushroottable(vm);
 	sq_pushstring(vm, fake_class);
-	if (SQ_FAILED(sq_get(vm, -2))) {
+	if (sq_get(vm, -2).Failed()) {
 		throw sq_throwerror(vm, "internal error assigning library class");
 	}
 	sq_pushstring(vm, lib->GetInstanceName());
-	if (SQ_FAILED(sq_get(vm, -2))) {
+	if (sq_get(vm, -2).Failed()) {
 		throw sq_throwerror(vm, fmt::format("unable to find class '{}' in the library '{}' version {}", lib->GetInstanceName(), library, version));
 	}
 	HSQOBJECT obj;

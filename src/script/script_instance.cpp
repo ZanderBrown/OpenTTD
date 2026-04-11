@@ -416,7 +416,7 @@ static const SaveLoad _script_byte[] = {
 				SlObject(nullptr, _script_byte);
 			}
 			sq_pushnull(vm);
-			while (SQ_SUCCEEDED(sq_next(vm, index - 1))) {
+			while (sq_next(vm, index - 1).Succeeded()) {
 				/* Store the value */
 				bool res = SaveObject(vm, -1, max_depth - 1, test);
 				sq_pop(vm, 2);
@@ -439,7 +439,7 @@ static const SaveLoad _script_byte[] = {
 				SlObject(nullptr, _script_byte);
 			}
 			sq_pushnull(vm);
-			while (SQ_SUCCEEDED(sq_next(vm, index - 1))) {
+			while (sq_next(vm, index - 1).Succeeded()) {
 				/* Store the key + value */
 				bool res = SaveObject(vm, -2, max_depth - 1, test) && SaveObject(vm, -1, max_depth - 1, test);
 				sq_pop(vm, 2);
@@ -694,9 +694,9 @@ bool ScriptInstance::IsPaused()
 					std::string class_name = fmt::format("{}{}", engine->GetAPIName(), view);
 					sq_pushroottable(this->vm);
 					sq_pushstring(this->vm, class_name);
-					if (SQ_FAILED(sq_get(this->vm, -2))) throw Script_FatalError(fmt::format("'{}' doesn't exist", class_name));
+					if (sq_get(this->vm, -2).Failed()) throw Script_FatalError(fmt::format("'{}' doesn't exist", class_name));
 					sq_pushroottable(vm);
-					if (SQ_FAILED(sq_call(this->vm, 1, SQTrue, SQFalse))) throw Script_FatalError(fmt::format("Failed to instantiate '{}'", class_name));
+					if (sq_call(this->vm, 1, SQTrue, SQFalse).Failed()) throw Script_FatalError(fmt::format("Failed to instantiate '{}'", class_name));
 					HSQOBJECT res;
 					sq_getstackobj(vm, -1, &res);
 					sq_addref(vm, &res);
@@ -799,7 +799,7 @@ bool ScriptInstance::CallLoad()
 
 	/* Call the script load function. sq_call removes the arguments (but not the
 	 * function pointer) from the stack. */
-	if (SQ_FAILED(sq_call(vm, 3, SQFalse, SQTrue, MAX_SL_OPS))) return false;
+	if (sq_call(vm, 3, SQFalse, SQTrue, MAX_SL_OPS).Failed()) return false;
 
 	/* Pop 1) The version, 2) the savegame data, 3) the object instance, 4) the function pointer. */
 	sq_pop(vm, 4);

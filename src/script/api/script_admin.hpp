@@ -22,7 +22,7 @@ public:
 	/**
 	 * Internal representation of the Send function.
 	 */
-	static SQInteger Send(HSQUIRRELVM vm);
+	static SQResult Send(HSQUIRRELVM vm);
 #else
 	/**
 	 * Send information to the AdminPort. The information can be anything

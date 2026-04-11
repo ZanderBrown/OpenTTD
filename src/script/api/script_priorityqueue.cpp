@@ -32,7 +32,7 @@ ScriptPriorityQueue::~ScriptPriorityQueue()
 	}
 }
 
-SQInteger ScriptPriorityQueue::Insert(HSQUIRRELVM vm)
+SQResult ScriptPriorityQueue::Insert(HSQUIRRELVM vm)
 {
 	HSQOBJECT item;
 	SQInteger priority;
@@ -48,12 +48,12 @@ SQInteger ScriptPriorityQueue::Insert(HSQUIRRELVM vm)
 	return SQConvert::Return<bool>::Set(vm, true);
 }
 
-SQInteger ScriptPriorityQueue::Pop(HSQUIRRELVM vm)
+SQResult ScriptPriorityQueue::Pop(HSQUIRRELVM vm)
 {
 	if (this->IsEmpty()) {
 		ScriptObject::SetLastError(ScriptError::ERR_PRECONDITION_FAILED);
 		sq_pushnull(vm);
-		return 1;
+		return SQResult::RETURN;
 	}
 
 	HSQOBJECT item = this->queue.front().second;
@@ -66,18 +66,18 @@ SQInteger ScriptPriorityQueue::Pop(HSQUIRRELVM vm)
 	return ret;
 }
 
-SQInteger ScriptPriorityQueue::Peek(HSQUIRRELVM vm) const
+SQResult ScriptPriorityQueue::Peek(HSQUIRRELVM vm) const
 {
 	if (this->IsEmpty()) {
 		ScriptObject::SetLastError(ScriptError::ERR_PRECONDITION_FAILED);
 		sq_pushnull(vm);
-		return 1;
+		return SQResult::RETURN;
 	}
 
 	return SQConvert::Return<HSQOBJECT>::Set(vm, this->queue.front().second);
 }
 
-SQInteger ScriptPriorityQueue::Exists(HSQUIRRELVM vm) const
+SQResult ScriptPriorityQueue::Exists(HSQUIRRELVM vm) const
 {
 	HSQOBJECT item;
 	sq_resetobject(&item);
@@ -86,13 +86,13 @@ SQInteger ScriptPriorityQueue::Exists(HSQUIRRELVM vm) const
 	return SQConvert::Return<bool>::Set(vm, std::find(this->queue.cbegin(), this->queue.cend(), item) != this->queue.cend());
 }
 
-SQInteger ScriptPriorityQueue::Clear(HSQUIRRELVM vm)
+SQResult ScriptPriorityQueue::Clear(HSQUIRRELVM vm)
 {
 	/* Release reference to stored objects. */
 	for (auto &i : this->queue) sq_release(vm, const_cast<HSQOBJECT *>(&i.second));
 	this->queue.clear();
 
-	return 0;
+	return SQResult::OK;
 }
 
 bool ScriptPriorityQueue::IsEmpty() const

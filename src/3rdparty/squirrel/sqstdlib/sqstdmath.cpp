@@ -8,46 +8,46 @@
 
 #include "../../../safeguards.h"
 
-#define SINGLE_ARG_FUNC(_funcname, num_ops) static SQInteger math_##_funcname(HSQUIRRELVM v){ \
+#define SINGLE_ARG_FUNC(_funcname, num_ops) static SQResult math_##_funcname(HSQUIRRELVM v){ \
 	SQFloat f; \
 	sq_decreaseops(v,num_ops); \
 	sq_getfloat(v,2,&f); \
 	sq_pushfloat(v,(SQFloat)_funcname(f)); \
-	return 1; \
+	return SQResult::RETURN; \
 }
 
-#define TWO_ARGS_FUNC(_funcname, num_ops) static SQInteger math_##_funcname(HSQUIRRELVM v){ \
+#define TWO_ARGS_FUNC(_funcname, num_ops) static SQResult math_##_funcname(HSQUIRRELVM v){ \
 	SQFloat p1,p2; \
 	sq_decreaseops(v,num_ops); \
 	sq_getfloat(v,2,&p1); \
 	sq_getfloat(v,3,&p2); \
 	sq_pushfloat(v,(SQFloat)_funcname(p1,p2)); \
-	return 1; \
+	return SQResult::RETURN; \
 }
 
 #ifdef EXPORT_DEFAULT_SQUIRREL_FUNCTIONS
-static SQInteger math_srand(HSQUIRRELVM v)
+static SQResult math_srand(HSQUIRRELVM v)
 {
 	SQInteger i;
 	if(SQ_FAILED(sq_getinteger(v,2,&i)))
 		return sq_throwerror(v,"invalid param");
 	srand((unsigned int)i);
-	return 0;
+	return SQResult::OK;
 }
 
-static SQInteger math_rand(HSQUIRRELVM v)
+static SQResult math_rand(HSQUIRRELVM v)
 {
 	sq_pushinteger(v,rand());
-	return 1;
+	return SQResult::RETURN;
 }
 #endif /* EXPORT_DEFAULT_SQUIRREL_FUNCTIONS */
 
-static SQInteger math_abs(HSQUIRRELVM v)
+static SQResult math_abs(HSQUIRRELVM v)
 {
 	SQInteger n;
 	sq_getinteger(v,2,&n);
 	sq_pushinteger(v,(SQInteger)abs((int)n));
-	return 1;
+	return SQResult::RETURN;
 }
 
 SINGLE_ARG_FUNC(sqrt, 100)
@@ -94,7 +94,7 @@ static const std::initializer_list<SQRegFunction> mathlib_funcs = {
 #define M_PI (3.14159265358979323846)
 #endif
 
-SQRESULT sqstd_register_mathlib(HSQUIRRELVM v)
+SQResult sqstd_register_mathlib(HSQUIRRELVM v)
 {
 	for(auto &func : mathlib_funcs) {
 		sq_pushstring(v,func.name);
@@ -110,6 +110,6 @@ SQRESULT sqstd_register_mathlib(HSQUIRRELVM v)
 #endif /* EXPORT_DEFAULT_SQUIRREL_FUNCTIONS */
 	sq_pushstring(v,"PI");
 	sq_pushfloat(v,(SQFloat)M_PI);
-	sq_createslot(v,-3);
-	return SQ_OK;
+	sq_newslot(v, -3, SQFalse);
+	return SQResult::OK;
 }

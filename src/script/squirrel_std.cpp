@@ -17,27 +17,27 @@
 #include "../safeguards.h"
 
 
-SQInteger SquirrelStd::min(HSQUIRRELVM vm)
+SQResult SquirrelStd::min(HSQUIRRELVM vm)
 {
 	SQInteger tmp1, tmp2;
 
 	sq_getinteger(vm, 2, &tmp1);
 	sq_getinteger(vm, 3, &tmp2);
 	sq_pushinteger(vm, std::min(tmp1, tmp2));
-	return 1;
+	return SQResult::RETURN;
 }
 
-SQInteger SquirrelStd::max(HSQUIRRELVM vm)
+SQResult SquirrelStd::max(HSQUIRRELVM vm)
 {
 	SQInteger tmp1, tmp2;
 
 	sq_getinteger(vm, 2, &tmp1);
 	sq_getinteger(vm, 3, &tmp2);
 	sq_pushinteger(vm, std::max(tmp1, tmp2));
-	return 1;
+	return SQResult::RETURN;
 }
 
-SQInteger SquirrelStd::require(HSQUIRRELVM vm)
+SQResult SquirrelStd::require(HSQUIRRELVM vm)
 {
 	SQInteger top = sq_gettop(vm);
 	std::string_view filename;
@@ -64,21 +64,21 @@ SQInteger SquirrelStd::require(HSQUIRRELVM vm)
 	/* Reset the top, so the stack stays correct */
 	sq_settop(vm, top);
 
-	return ret ? 0 : SQ_ERROR;
+	return ret ? SQResult::OK : SQResult::ERROR;
 }
 
-SQInteger SquirrelStd::notifyallexceptions(HSQUIRRELVM vm)
+SQResult SquirrelStd::notifyallexceptions(HSQUIRRELVM vm)
 {
 	SQBool b;
 
 	if (sq_gettop(vm) >= 1) {
-		if (SQ_SUCCEEDED(sq_getbool(vm, -1, &b))) {
+		if (sq_getbool(vm, -1, &b).Succeeded()) {
 			sq_notifyallexceptions(vm, b);
-			return 0;
+			return SQResult::OK;
 		}
 	}
 
-	return SQ_ERROR;
+	return SQResult::ERROR;
 }
 
 void squirrel_register_global_std(Squirrel &engine)

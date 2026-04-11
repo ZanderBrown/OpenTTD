@@ -472,13 +472,13 @@ bool SQVM::DerefInc(SQInteger op,SQObjectPtr &target, SQObjectPtr &self, SQObjec
 #define arg3 (_i_._arg3)
 #define sarg3 ((SQInteger)std::bit_cast<char>(_i_._arg3))
 
-SQRESULT SQVM::Suspend()
+SQResult SQVM::Suspend()
 {
 	if (_suspended)
 		return sq_throwerror(this, "cannot suspend an already suspended vm");
 	if (_nnativecalls!=2)
 		return sq_throwerror(this, "cannot suspend through native calls/metamethods");
-	return SQ_SUSPEND_FLAG;
+	return SQResult::SUSPEND;
 }
 
 void SQVM::PopVarArgs(VarArgs &vargs)
@@ -1184,7 +1184,7 @@ bool SQVM::CallNative(SQNativeClosure *nclosure,SQInteger nargs,SQInteger stackb
 
 	/* Store the call stack size, so we can restore that */
 	SQInteger cstksize = _callsstacksize;
-	SQInteger ret;
+	SQResult ret = SQResult::ERROR;
 	try {
 		SQBool can_suspend = this->_can_suspend;
 		this->_can_suspend = false;
@@ -1208,8 +1208,8 @@ bool SQVM::CallNative(SQNativeClosure *nclosure,SQInteger nargs,SQInteger stackb
 
 	_nnativecalls--;
 	suspend = false;
-	if( ret == SQ_SUSPEND_FLAG) suspend = true;
-	else if (ret < 0) {
+	if (ret.IsSuspend()) suspend = true;
+	else if (ret.Failed()) {
 		_stackbase = oldstackbase;
 		_top = oldtop;
 		POP_CALLINFO(this);
@@ -1218,7 +1218,10 @@ bool SQVM::CallNative(SQNativeClosure *nclosure,SQInteger nargs,SQInteger stackb
 		return false;
 	}
 
-	if (ret != 0){ retval = TOP(); TOP().Null(); }
+	if (ret.IsReturn()) {
+		retval = TOP();
+		TOP().Null();
+	}
 	else { retval = _null_; }
 	_stackbase = oldstackbase;
 	_top = oldtop;
